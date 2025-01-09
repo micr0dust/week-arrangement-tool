@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-hant">
+
+<head>
+    <meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous">//jquery</script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"
+        integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T"
+        crossorigin="anonymous">//bootstrap 4</script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <title>下週有沒有空</title>
+    <style>
+
+    </style>
+</head>
+
+<body>
+    <template id="timeSlotTemplate">
+        <div class="card mb-2">
+            <div class="card-body">
+                <div class="row form-group justify-content-between">
+                    <div class="card-title">
+                        <h4 class="ml-2" id="title" contenteditable="true">有空的時段</h4>
+                    </div>
+                    <button class="btn btn-danger ml-5" onclick="removeTimeSlot(this.closest('.card'))">X</button>
+                </div>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="available" name="available" onclick="availableSwitch(this)">
+                    <label class="custom-control-label" for="available">反向選擇沒空時段</label>
+                </div>
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">開始時間</span>
+                    </div>
+                    <select class="form-control col-6" id="startTime" name="startTime" onchange="handleTimeChange(this.closest('.card'))"></select>
+                </div>
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">結束時間</span>
+                    </div>
+                    <select class="form-control col-6" id="endTime" name="endTime"></select>
+                </div>
+                <div id="checkboxes" class="form-group mt-3">
+                    <label>選擇欲套用的星期</label>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input ml-2" type="checkbox" id="normal" name="normal" value="normal" onclick="checkboxNormal(this)">
+                        <label class="form-check-label" for="normal">平日</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input ml-2" type="checkbox" id="weekend" name="weekend" value="weekend" onclick="checkboxWeekend(this)">
+                        <label class="form-check-label" for="weekend">週末</label>
+                    </div>
+                    <br>
+                    <div id="days">
+                        <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="monday" name="days" value="monday" onclick="checkNormal(this)">
+                        <label class="form-check-label" for="monday">周一</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="tuesday" name="days" value="tuesday" onclick="checkNormal(this)">
+                        <label class="form-check-label" for="tuesday">周二</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="wednesday" name="days" value="wednesday" onclick="checkNormal(this)">
+                        <label class="form-check-label" for="wednesday">周三</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="thursday" name="days" value="thursday" onclick="checkNormal(this)">
+                        <label class="form-check-label" for="thursday">周四</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="friday" name="days" value="friday" onclick="checkNormal(this)">
+                        <label class="form-check-label" for="friday">周五</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="saturday" name="days" value="saturday" onclick="checkWeekend(this)">
+                        <label class="form-check-label" for="saturday">周六</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="sunday" name="days" value="sunday" onclick="checkWeekend(this)">
+                        <label class="form-check-label" for="sunday">周日</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row form-group justify-content-between">
+                    <button id="save" class="btn btn-primary" onclick="saveTimeSlots(this.closest('.card'))">提交</button>
+                    <div class="card-feet">
+                        <button class="btn btn-light" onclick="moveUp(this.closest('.card'))">∧</button>
+                        <button class="btn btn-light" onclick="moveDown(this.closest('.card'))">∨</button>
+                    </div>
+                </div>
+                <label id="error" class="d-none text-danger"></label>
+            </div>
+        </div>
+    </template>
+    <div class="container mt-5">
+        <h1 class="text-center">列出下週空閒時間</h1>
+        <div class="row">
+            <div class="col-md-6 mb-2">
+                <img id="calendarImage" class="col-12 d-none" alt="SVG周曆" />
+            </div>
+            <div class="col-md-6 mb-2">
+                <button id="addTimeSlot" class="btn btn-primary mb-3" onclick="addTimeSlot()">新增時段 + </button>
+                <button id="copy" class="btn btn-info mb-3 ml-3 d-none" onclick="copyImage()">複製時間表</button>
+                <p id="main"></p>
+            </div>
+        </div>
+    </div>
+    <script src="/js/calendarSVG.js"></script>
+    <script src="/js/index.js"></script>
+    <script src="/js/base64.js"></script>
+</body>
+
+</html>
