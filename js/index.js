@@ -132,10 +132,7 @@ function saveToData() {
         });
     }
     data = tmp_data;
-    console.log(data);
     createSVGElement(segmentsToTable(data), vaildRow(data));
-    console.log(dataToCode(data));
-    // console.log(codeToData(dataToCode(data)));
 }
 
 function segmentsToTable(data){

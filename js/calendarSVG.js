@@ -99,3 +99,42 @@ function copyImage() {
         });
     });
 }
+
+function shareButton(){
+    const img = document.getElementById('calendarImage');
+    if (navigator.share) {
+        navigator.share({
+            title: '分享圖片',
+            text: '這是SVG周曆圖片',
+            url: window.location.href
+        });
+    } else {
+        Swal.fire('您的裝置不支援分享功能');
+    }
+}
+
+// function shareButton() {
+//     const img = document.getElementById('calendarImage');
+//     if (navigator.share) {
+//         fetch(img.src)
+//             .then(response => response.text())
+//             .then(svgText => {
+//                 const blob = new Blob([svgText], { type: 'image/svg+xml' });
+//                 const url = URL.createObjectURL(blob);
+//                 navigator.share({
+//                     title: '分享圖片',
+//                     text: '這是SVG周曆圖片',
+//                     url: url
+//                 }).then(() => {
+//                     URL.revokeObjectURL(url);
+//                 }).catch(error => {
+//                     console.error('分享失敗', error);
+//                 });
+//             })
+//             .catch(error => {
+//                 console.error('無法獲取SVG圖片', error);
+//             });
+//     } else {
+//         Swal.fire('您的裝置不支援分享功能');
+//     }
+// }

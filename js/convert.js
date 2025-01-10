@@ -52,7 +52,6 @@ function buildFromData(segment){
     setTimeOptions(clone, 'endTime', segment.endTime);
     const idlist = ['available','normal', 'weekend', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     const days = base65ToInt(segment.days);
-    console.log((days >>> 0).toString(2));
     const checkList = [
         segment.mode==-1,
         Boolean((days & (1+2+4+8+16)) == (1+2+4+8+16)),
@@ -60,7 +59,6 @@ function buildFromData(segment){
         Boolean(days & 1), Boolean(days & 2), Boolean(days & 4), Boolean(days & 8),
         Boolean(days & 16), Boolean(days & 32), Boolean(days & 64)
     ];
-    console.log(checkList);
     for (let i = 0; i < idlist.length; i++) {
         let uniqueId = `${idlist[i]}${cnt}`;
         let selector = clone.querySelector(`#${idlist[i]}`);
