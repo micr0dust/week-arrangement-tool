@@ -14,6 +14,8 @@ function init() {
         counter++;
     }
     timeSlotTable.push(`24:00`);
+    if (window.location.search) codeToData();
+    else addTimeSlot();
 }
 
 function addTimeSlot() {
@@ -79,6 +81,11 @@ function saveTimeSlots(timeSlot) {
     for (let i = 0; i < inputElements.length; i++)
         flag |= inputElements[i].checked;
     if (!flag) return card_error(timeSlot, '請選擇欲套用的日期');
+    timeSlotDisable(timeSlot);
+    saveToData();
+}
+
+function timeSlotDisable(timeSlot) {
     const checkboxes = timeSlot.querySelectorAll('input');
     for (let i = 0; i < checkboxes.length; i++)
         checkboxes[i].disabled = true;
@@ -86,7 +93,6 @@ function saveTimeSlots(timeSlot) {
     timeSlot.querySelector('#endTime').disabled = true;
     timeSlot.querySelector('#save').remove();
     timeSlot.querySelector('#title').contentEditable = false;
-    saveToData();
     document.getElementById('addTimeSlot').disabled = false;
 }
 
@@ -121,18 +127,21 @@ function saveToData() {
             title: segments[i].querySelector('#title').textContent,
             startTime: parseInt(segments[i].querySelector('#startTime').value),
             endTime: parseInt(segments[i].querySelector('#endTime').value),
-            days: intToBase64(daySelected),
+            days: intToBase65(daySelected),
             mode: segments[i].querySelector('[name="available"]').checked? -1:1
         });
     }
     data = tmp_data;
+    console.log(data);
     createSVGElement(segmentsToTable(data), vaildRow(data));
+    console.log(dataToCode(data));
+    // console.log(codeToData(dataToCode(data)));
 }
 
 function segmentsToTable(data){
     let table = new Array(7).fill(0).map(() => new Array((24-8)*60/15).fill(0));
     for(let i = 0; i < data.length; i++){
-        let days = base64ToInt(data[i].days);
+        let days = base65ToInt(data[i].days);
         for(let j = 0; j < 7; j++){
             if(days & (1 << j)){
                 for(let k = data[i].startTime; k < data[i].endTime; k++)
