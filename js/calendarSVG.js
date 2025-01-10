@@ -10,7 +10,8 @@ function createSVGElement(data, vaildRow) {
         }
     }
     document.getElementById('calendarImage').classList.remove('d-none');
-    if(isMobile && navigator.share)
+    // console.log(!isMobile, navigator.share);
+    if(!isMobile || navigator.share)
         document.getElementById('shareButton').classList.remove('d-none');
     const svgNS = "http://www.w3.org/2000/svg";
     const days = ["", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"];
