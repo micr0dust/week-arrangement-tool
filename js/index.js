@@ -14,7 +14,10 @@ function init() {
         counter++;
     }
     timeSlotTable.push(`24:00`);
-    if (window.location.search) codeToData();
+    if (window.location.search) {
+        codeToData();
+        document.getElementById('addTimeSlot').disabled = false;
+    }
     else addTimeSlot();
 }
 
