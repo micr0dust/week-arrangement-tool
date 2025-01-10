@@ -133,6 +133,7 @@ function saveToData() {
     }
     data = tmp_data;
     createSVGElement(segmentsToTable(data), vaildRow(data));
+    dataToCode();
 }
 
 function segmentsToTable(data){

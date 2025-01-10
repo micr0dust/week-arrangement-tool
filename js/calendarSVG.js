@@ -1,14 +1,17 @@
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
 function createSVGElement(data, vaildRow) {
     for(let i = 0; i < vaildRow.length; i++){
         if(vaildRow[i] === 1) break;
         if(i === vaildRow.length - 1){
             document.getElementById('calendarImage').classList.add('d-none');
-            document.getElementById('copy').classList.add('d-none');
+            document.getElementById('shareButton').classList.add('d-none');
             return;
         }
     }
     document.getElementById('calendarImage').classList.remove('d-none');
-    document.getElementById('copy').classList.remove('d-none');
+    if(isMobile && navigator.share)
+        document.getElementById('shareButton').classList.remove('d-none');
     const svgNS = "http://www.w3.org/2000/svg";
     const days = ["", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"];
     const startTime = 8;
@@ -27,6 +30,15 @@ function createSVGElement(data, vaildRow) {
     svg.setAttribute('width', 700);
     svg.setAttribute('height', svg_height);
     svg.setAttribute('xmlns', svgNS);
+
+    // 添加白色背景
+    const background = document.createElementNS(svgNS, 'rect');
+    background.setAttribute('x', 0);
+    background.setAttribute('y', 0);
+    background.setAttribute('width', '100%');
+    background.setAttribute('height', '100%');
+    background.setAttribute('fill', 'white');
+    svg.appendChild(background);
 
     // 生成表頭
     days.forEach((day, index) => {
@@ -81,7 +93,15 @@ function createSVGElement(data, vaildRow) {
     document.getElementById('calendarImage').src = url;
 }
 
-function copyImage() {
+function shareButton() {
+    if (isMobile) {
+        shareSVG();
+    } else {
+        copySVG();
+    }
+}
+
+function copySVG() {
     const img = document.getElementById('calendarImage');
     const canvas = document.createElement('canvas');
     canvas.width = img.naturalWidth;
@@ -100,20 +120,7 @@ function copyImage() {
     });
 }
 
-// function shareButton(){
-//     const img = document.getElementById('calendarImage');
-//     if (navigator.share) {
-//         navigator.share({
-//             title: '分享圖片',
-//             text: '這是SVG周曆圖片',
-//             url: img.src
-//         });
-//     } else {
-//         Swal.fire('您的裝置不支援分享功能');
-//     }
-// }
-
-function shareButton() {
+function shareSVG() {
     const img = document.getElementById('calendarImage');
     if (navigator.share) {
         fetch(img.src)
@@ -131,8 +138,8 @@ function shareButton() {
                     canvas.toBlob(blob => {
                         const pngUrl = URL.createObjectURL(blob);
                         navigator.share({
-                            title: '分享圖片',
-                            text: '這是SVG周曆圖片',
+                            title: '分享時間表圖片',
+                            text: '',
                             files: [new File([blob], 'calendar.png', { type: 'image/png' })]
                         }).catch(error => {
                             console.error('分享失敗', error);
