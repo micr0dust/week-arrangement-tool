@@ -100,41 +100,53 @@ function copyImage() {
     });
 }
 
-function shareButton(){
-    const img = document.getElementById('calendarImage');
-    if (navigator.share) {
-        navigator.share({
-            title: '分享圖片',
-            text: '這是SVG周曆圖片',
-            url: window.location.href
-        });
-    } else {
-        Swal.fire('您的裝置不支援分享功能');
-    }
-}
-
-// function shareButton() {
+// function shareButton(){
 //     const img = document.getElementById('calendarImage');
 //     if (navigator.share) {
-//         fetch(img.src)
-//             .then(response => response.text())
-//             .then(svgText => {
-//                 const blob = new Blob([svgText], { type: 'image/svg+xml' });
-//                 const url = URL.createObjectURL(blob);
-//                 navigator.share({
-//                     title: '分享圖片',
-//                     text: '這是SVG周曆圖片',
-//                     url: url
-//                 }).then(() => {
-//                     URL.revokeObjectURL(url);
-//                 }).catch(error => {
-//                     console.error('分享失敗', error);
-//                 });
-//             })
-//             .catch(error => {
-//                 console.error('無法獲取SVG圖片', error);
-//             });
+//         navigator.share({
+//             title: '分享圖片',
+//             text: '這是SVG周曆圖片',
+//             url: img.src
+//         });
 //     } else {
 //         Swal.fire('您的裝置不支援分享功能');
 //     }
 // }
+
+function shareButton() {
+    const img = document.getElementById('calendarImage');
+    if (navigator.share) {
+        fetch(img.src)
+            .then(response => response.text())
+            .then(svgText => {
+                const svgBlob = new Blob([svgText], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(svgBlob);
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                const image = new Image();
+                image.onload = () => {
+                    canvas.width = image.width;
+                    canvas.height = image.height;
+                    context.drawImage(image, 0, 0);
+                    canvas.toBlob(blob => {
+                        const pngUrl = URL.createObjectURL(blob);
+                        navigator.share({
+                            title: '分享圖片',
+                            text: '這是SVG周曆圖片',
+                            files: [new File([blob], 'calendar.png', { type: 'image/png' })]
+                        }).catch(error => {
+                            console.error('分享失敗', error);
+                        });
+                        URL.revokeObjectURL(pngUrl);
+                    }, 'image/png');
+                    URL.revokeObjectURL(url);
+                };
+                image.src = url;
+            })
+            .catch(error => {
+                console.error('無法獲取SVG圖片', error);
+            });
+    } else {
+        Swal.fire('您的裝置不支援分享功能');
+    }
+}
