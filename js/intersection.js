@@ -46,7 +46,7 @@ function saveScheduleBlock(schedule) {
     scheduleBlockDisable(schedule);
     cardChangeCallback();
     const url_display = schedule.querySelector('#url_display');
-    url_display.href = window.location.origin + '?' + url.split('?')[1];
+    url_display.href = window.location.origin + window.location.pathname + '?' + url.split('?')[1];
     url_display.classList.remove('d-none');
     const scheduleImage = schedule.querySelector('#scheduleImage');
     const urlParams = new URLSearchParams(url.split('?')[1]);
