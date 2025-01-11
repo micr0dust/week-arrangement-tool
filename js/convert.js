@@ -15,7 +15,8 @@ function dataToCode() {
         };
         result_code += "-" + tmp_data.startTime + tmp_data.endTime + tmp_data.days;
     }
-    let newUrl = `${window.location.origin + window.location.pathname}?title=${title}&data=${result_code.slice(1)}`;
+    let newUrl = `${window.location.origin + window.location.pathname}`;
+    if(result_code) newUrl += `?title=${title}&data=${result_code.slice(1)}`;
     history.replaceState(null, '', newUrl);
 }
 
