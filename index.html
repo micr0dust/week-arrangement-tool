@@ -14,11 +14,7 @@
         crossorigin="anonymous">//bootstrap 4</script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css">
     <title>下週有沒有空</title>
-    <style>
-
-    </style>
 </head>
 
 <body>
@@ -27,9 +23,9 @@
             <div class="card-body">
                 <div class="row form-group justify-content-between">
                     <div class="card-title">
-                        <h4 class="ml-2" id="title" contenteditable="true">有空的時段</h4>
+                        <h4 class="ml-3" id="title" contenteditable="true">有空的時段</h4>
                     </div>
-                    <button class="btn btn-danger ml-5" onclick="removeTimeSlot(this.closest('.card'))">X</button>
+                    <button class="btn btn-danger ml-5" onclick="removeCard(this.closest('.card'))">X</button>
                 </div>
                 <div class="custom-control custom-switch">
                     <input type="checkbox" class="custom-control-input" id="available" name="available" onclick="availableSwitch(this)">
@@ -100,15 +96,41 @@
             </div>
         </div>
     </template>
-    <div class="container mt-5">
-        <h1 class="text-center">列出下週空閒時間</h1>
+    <nav id="navbar" class="navbar navbar-expand-md bg-dark navbar-info text-white">
+        <div class="container">
+            <i>下週有沒有空</i>
+            <button class="btn btn-dark" onclick="window.location.href = `./intersection${window.location.search}`">
+                共同時段計算
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-up-right" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/>
+                    <path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/>
+                </svg>
+            </button>
+        </div>
+    </nav>
+    <div class="container mt-2">
         <div class="row">
-            <div class="col-md-6 mb-2">
-                <img id="calendarImage" class="col-12 d-none" alt="SVG周曆" />
+            <!-- <div class="col-md-6"></div> -->
+            <div id="svg" class="col-md-6 mb-2 order-md-2 d-none">
+                <div class="text-center d-none">
+                    <label class="font-weight-bold" id="main_title">有空的時段</label>
+                </div>
+                <img id="calendarImage" class="col-12" alt="SVG周曆" />
             </div>
-            <div class="col-md-6 mb-2">
-                <button id="addTimeSlot" class="btn btn-primary mb-3" onclick="addTimeSlot()">新增時段 + </button>
-                <button id="shareButton" class="btn btn-light mb-3 ml-3 d-none" onclick="shareButton()"><i class="bi bi-share"></i> 分享</button>
+            <div class="col-md-6 mb-2 order-md-1">
+                <button id="addTimeSlot" class="btn btn-primary mb-3" onclick="addTimeSlot()">新增 + </button>
+                <button id="editButton" class="btn btn-warning mb-3 d-none" onclick="editTitle()">
+                    標題
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                        <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001m-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708z"/>
+                    </svg>
+                </button>
+                <button id="shareButton" class="btn btn-light mb-3 d-none" onclick="shareButton()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-share" viewBox="0 0 16 16">
+                        <path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.5 2.5 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5m-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3"/>
+                    </svg>
+                    分享圖片
+                </button>
                 <p id="main"></p>
             </div>
         </div>
@@ -116,6 +138,7 @@
     <script src="./js/calendarSVG.js"></script>
     <script src="./js/base65.js"></script>
     <script src="./js/convert.js"></script>
+    <script src="./js/card_control.js"></script>
     <script src="./js/index.js"></script>
     <script>
         if ('serviceWorker' in navigator) {

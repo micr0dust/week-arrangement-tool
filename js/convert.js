@@ -1,5 +1,6 @@
 function dataToCode() {
     let result_code = "";
+    const title = document.getElementById('main_title').textContent;
     const segments = Array.from(document.querySelectorAll('.card')).reverse();
     for (let i = 0; i < segments.length; i++) {
         let days = segments[i].querySelector('#days').querySelectorAll('input');
@@ -14,35 +15,65 @@ function dataToCode() {
         };
         result_code += "-" + tmp_data.startTime + tmp_data.endTime + tmp_data.days;
     }
-    let newUrl = window.location.origin + window.location.pathname + '?' + result_code.slice(1);
+    let newUrl = `${window.location.origin + window.location.pathname}?title=${title}&data=${result_code.slice(1)}`;
     history.replaceState(null, '', newUrl);
 }
 
-function codeToData() {
-    let code = window.location.search.split("?")[1];
+function codeToData(code) {
     let segments = code.split("-");
-    let segment;
     let load_data = [];
     for (let i = 0; i < segments.length; i++) {
-        segment = segments[i];
-        if(segment==='') continue;
-        let startTime = base65ToInt(segment[0]);
-        let endTime = base65ToInt(segment[1]);
-        let days = base65ToInt(segment.slice(2));
-        let mode = (days & (1 << 7))? -1:1;
-        days &= ~(1 << 7);
-        load_data.push({
-            title: mode === -1? "沒空的時段":"有空的時段",
-            startTime: startTime,
-            endTime: endTime,
-            days: intToBase65(days),
-            mode: mode
-        });
+        if(segments[i]==='') continue;
+        load_data.push(segmentToData(segments[i]));
     }
-    for (let i = 0; i < load_data.length; i++)
-        buildFromData(load_data[i]);
-    data = load_data;
-    saveToData();
+    return load_data;
+}
+
+function segmentToData(segment) {
+    let days = base65ToInt(segment.slice(2));
+    let mode = (days & (1 << 7))? -1:1;
+    return {
+        title: mode === -1? "沒空的時段":"有空的時段",
+        startTime: base65ToInt(segment[0]),
+        endTime: base65ToInt(segment[1]),
+        days: intToBase65(days & ~(1 << 7)),
+        mode: mode
+    };
+}
+
+function dataToTable(data){
+    let table = new Array(7).fill(0).map(() => new Array((24-8)*60/INTERVAL).fill(0));
+    for(let i = 0; i < data.length; i++){
+        let days = base65ToInt(data[i].days);
+        for(let j = 0; j < 7; j++){
+            if(days & (1 << j)){
+                for(let k = data[i].startTime; k < data[i].endTime; k++)
+                    table[j][k] = data[i].mode;
+            }
+        }
+    }
+    return table;
+}
+
+function tableToVaildRow(table) {
+    let preCalc = new Array((24-8)*60/INTERVAL).fill(0);
+    for (let j = 0; j < table[0].length; j++)
+        for (let i = 1; i < table.length; i++)
+            preCalc[j] += table[i][j] << i;
+    let vaildRows = new Array((24-8)*60/INTERVAL).fill(0);
+    vaildRows[0] = Number(preCalc[0]!=0);
+    for(let i = 2; i < vaildRows.length; i++){
+        vaildRows[i-1] = preCalc[i-1]?
+            Number(preCalc[i-1]!=preCalc[i-2]):Number(preCalc[i-1]!=preCalc[i-2]);
+    }
+    return vaildRows;
+}
+
+function tableIntersection(table, new_table) {
+    for (let i = 0; i < table.length; i++)
+        for (let j = 0; j < table[0].length; j++) 
+            table[i][j] &= Number(new_table[i][j]===1);
+    return table;
 }
 
 function buildFromData(segment){

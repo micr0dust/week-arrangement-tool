@@ -5,6 +5,20 @@ let data = [];
 let cnt = 0;
 init();
 
+function newBtnDisable(bool) {
+    document.getElementById('addTimeSlot').disabled = bool;
+}
+
+function cardChangeCallback() {
+    saveToData();
+}
+
+function svgToolDisplay(bool) {
+    const action = bool ? 'remove':'add';
+    document.getElementById('shareButton').classList[action]('d-none');
+    document.getElementById('editButton').classList[action]('d-none');
+}
+
 function init() {
     let counter = 0;
     for (let i = 8 * 60; i < 24 * 60; i += INTERVAL) {
@@ -15,8 +29,14 @@ function init() {
     }
     timeSlotTable.push(`24:00`);
     if (window.location.search) {
-        codeToData();
-        document.getElementById('addTimeSlot').disabled = false;
+        const urlParams = new URLSearchParams(window.location.search);
+        const load_data = codeToData(urlParams.get('data'));
+        for (let i = 0; i < load_data.length; i++)
+            buildFromData(load_data[i]);
+        document.getElementById('main_title').textContent = decodeURIComponent(urlParams.get('title'));
+        data = load_data;
+        newBtnDisable(false);
+        cardChangeCallback();
     }
     else addTimeSlot();
 }
@@ -34,7 +54,7 @@ function addTimeSlot() {
         clone.querySelector(`label[for="${idlist[i]}"]`).setAttribute('for', uniqueId);
     }
     element.insertAdjacentElement('afterend', clone.firstElementChild);
-    document.getElementById('addTimeSlot').disabled = true;
+    newBtnDisable(true);
     cnt++;
 }
 
@@ -64,13 +84,6 @@ function handleTimeChange(element) {
     setTimeOptions(element, 'endTime', startTime);
 }
 
-function removeTimeSlot(element) {
-    element.remove();
-    saveToData();
-    if(document.getElementById('save') === null)
-        document.getElementById('addTimeSlot').disabled = false;
-}
-
 function saveTimeSlots(timeSlot) {
     timeSlot.classList.remove('border-danger');
     timeSlot.querySelector('#error').classList.add('d-none');
@@ -85,7 +98,7 @@ function saveTimeSlots(timeSlot) {
         flag |= inputElements[i].checked;
     if (!flag) return card_error(timeSlot, '請選擇欲套用的日期');
     timeSlotDisable(timeSlot);
-    saveToData();
+    cardChangeCallback();
 }
 
 function timeSlotDisable(timeSlot) {
@@ -96,26 +109,7 @@ function timeSlotDisable(timeSlot) {
     timeSlot.querySelector('#endTime').disabled = true;
     timeSlot.querySelector('#save').remove();
     timeSlot.querySelector('#title').contentEditable = false;
-    document.getElementById('addTimeSlot').disabled = false;
-}
-
-function card_error(timeSlot, msg) {
-    timeSlot.classList.add('border-danger');
-    const error = timeSlot.querySelector('#error');
-    error.textContent = msg;
-    error.classList.remove('d-none');
-}
-
-function moveUp(card) {
-    const prevCard = card.previousElementSibling;
-    if (prevCard && prevCard.tagName.toLowerCase() == 'div') card.parentNode.insertBefore(card, prevCard);
-    saveToData();
-}
-
-function moveDown(card) {
-    const nextCard = card.nextElementSibling;
-    if (nextCard && nextCard.tagName.toLowerCase() == 'div') card.parentNode.insertBefore(nextCard, card);
-    saveToData();
+    newBtnDisable(false);
 }
 
 function saveToData() {
@@ -135,26 +129,12 @@ function saveToData() {
         });
     }
     data = tmp_data;
-    createSVGElement(segmentsToTable(data), vaildRow(data));
+    createSVGElement(dataToTable(data));
     dataToCode();
 }
 
-function segmentsToTable(data){
-    let table = new Array(7).fill(0).map(() => new Array((24-8)*60/15).fill(0));
-    for(let i = 0; i < data.length; i++){
-        let days = base65ToInt(data[i].days);
-        for(let j = 0; j < 7; j++){
-            if(days & (1 << j)){
-                for(let k = data[i].startTime; k < data[i].endTime; k++)
-                    table[j][k] = data[i].mode;
-            }
-        }
-    }
-    return table;
-}
-
 function vaildRow(data){
-    let table = new Array((24-8)*60/15).fill(0);
+    let table = new Array((24-8)*60/INTERVAL).fill(0);
     for(let i = 0; i < data.length; i++)
         table[data[i].startTime] = table[data[i].endTime] = 1;
     return table;
@@ -196,4 +176,24 @@ function availableSwitch(element) {
     }else if(!element.checked && title.textContent === '沒空的時段'){
         title.textContent = '有空的時段';
     }
+}
+
+function editTitle() {
+    const title = document.querySelector('#main_title');
+    Swal.fire({
+        title: '修改標題',
+        input: 'text',
+        inputValue: title.textContent,
+        showCancelButton: true,
+        confirmButtonText: '確認',
+        cancelButtonText: '取消',
+        inputValidator: (value) => {
+            if (!value) return '標題不能為空';
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            title.textContent = result.value;
+            cardChangeCallback();
+        }
+    });
 }
